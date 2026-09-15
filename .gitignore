@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+
+# uv — the lockfile is committed; the environment is not.
+.venv/
+
+# Environment
+.env
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+
+# Editors
+.idea/
+.vscode/

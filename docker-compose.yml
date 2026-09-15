@@ -1,0 +1,44 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    environment:
+      # Compose owns the in-network addresses; the values in .env are only the
+      # localhost fallbacks for running without Docker.
+      DATABASE_URL: postgresql://narnix:narnix@postgres:5432/narnix_ai
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: narnix
+      POSTGRES_PASSWORD: narnix
+      POSTGRES_DB: narnix_ai
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U narnix -d narnix_ai"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:8-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:

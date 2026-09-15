@@ -1,0 +1,34 @@
+[project]
+name = "narnix-ai"
+version = "0.1.0"
+description = "AI assistant backend for the NarnixVPN Telegram bot — FastAPI + LangChain agents, called back through signed webhooks."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.141",
+    "langchain>=1.4",
+    "langchain-openrouter>=0.2,<0.3",
+    "langgraph-checkpoint-postgres>=2.0",
+    "psycopg[binary,pool]>=3.2",
+    "redis>=6.0",
+    "httpx>=0.28",
+    "pydantic-settings>=2.10",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    "pytest-asyncio>=1.0",
+    "respx>=0.23",
+]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
