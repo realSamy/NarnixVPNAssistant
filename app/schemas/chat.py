@@ -7,6 +7,7 @@ class ChatUser(BaseModel):
 
     id: int
     first_name: str = ""
+    lang: str = "fa"
 
 
 class MessageIn(BaseModel):
