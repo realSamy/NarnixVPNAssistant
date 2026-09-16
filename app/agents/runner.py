@@ -102,7 +102,7 @@ class AgentRunner:
 
         result = await agent.ainvoke(
             {"messages": [("user", message.text)]},
-            config={"configurable": {"thread_id": session_id}},
+            config=RunnableConfig(configurable={"thread_id": session_id}),
         )
 
         reply = _final_text(result["messages"])
