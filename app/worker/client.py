@@ -96,5 +96,97 @@ class WorkerClient:
             {"action": "close_chat", "chat_id": chat_id, "thread_id": thread_id, "reason": reason}
         )
 
-    async def reset_chat(self, chat_id: int) -> dict:
-        return await self.call({"action": "reset_chat", "chat_id": chat_id})
+        async def reset_chat(self, chat_id: int) -> dict:
+
+            return await self.call({"action": "reset_chat", "chat_id": chat_id})
+
+    # --- Read-only live data (resolved by the Worker from D1) ---
+
+    async def get_packages(self) -> dict:
+        """Fetch the current package catalog. Global — not user-scoped."""
+        return await self.call({"action": "get_packages"})
+
+    async def get_user_configs(self, chat_id: int) -> dict:
+        """Fetch the calling user's purchased configs (ownership enforced server-side)."""
+        return await self.call({"action": "get_user_configs", "chat_id": chat_id})
+
+    # --- Telegram output (the agent never renders QR/config itself) ---
+
+    async def send_qr(
+        self,
+        chat_id: int,
+        text: str,
+        t1: str = "",
+        t2: str = "",
+        theme: str | None = None,
+        caption: str | None = None,
+    ) -> dict:
+        """Deliver a QR code image of `text` into the user's topic."""
+        payload: dict = {"action": "send_qr", "chat_id": chat_id, "text": text, "t1": t1, "t2": t2}
+        if theme:
+            payload["theme"] = theme
+        if caption:
+            payload["caption"] = caption
+        return await self.call(payload)
+
+    async def send_config(self, chat_id: int, config_id: int) -> dict:
+        """Deliver a purchased config (text + QR) to its owner."""
+        return await self.call({"action": "send_config", "chat_id": chat_id, "config_id": config_id})
+
+    # --- Progress UX: fire-and-forget, never retried (cosmetic only) ---
+
+    async def send_draft(
+        self,
+        chat_id: int,
+        text: str,
+        draft_id: int,
+        can_stop: bool = True,
+        keep_on_stop: bool = True,
+    ) -> bool:
+        """Post a streaming draft to the user's topic.
+
+        Single attempt, errors swallowed: a deleted/closed topic must not turn
+        into a retry storm, and a draft is purely cosmetic — the final answer
+        message is what actually delivers content.
+        """
+        return await self._best_effort(
+            {
+                "action": "draft",
+                "chat_id": chat_id,
+                "draft_id": draft_id,
+                "text": text,
+                "can_stop": can_stop,
+                "keep_on_stop": keep_on_stop,
+            }
+        )
+
+    async def send_stage(self, chat_id: int, step: str, draft_id: int) -> bool:
+        """Signal a step change; the Worker picks a fun message for `step`."""
+        return await self._best_effort(
+            {"action": "stage", "chat_id": chat_id, "draft_id": draft_id, "step": step}
+        )
+
+    async def _post_signed(self, payload: dict) -> httpx.Response:
+        """Signs and POSTs one payload, returning the raw response.
+
+        Shared so `call` (retried, raises on 4xx) and the fire-and-forget
+        draft/stage helpers sign the exact same bytes the Worker will verify.
+        """
+        raw = json.dumps(payload).encode()
+        return await self._http.post(
+            self._callback_url,
+            content=raw,
+            headers={
+                "content-type": "application/json",
+                SIGNATURE_HEADER: sign_payload(self._secret, raw),
+            },
+        )
+
+    async def _best_effort(self, payload: dict) -> bool:
+        """One POST, never raises — for cosmetic callbacks only."""
+        try:
+            await self._post_signed(payload)
+            return True
+        except Exception as err:  # noqa: BLE001 — dropping a draft is not fatal
+            logger.debug("fire-and-forget callback dropped (%s): %s", payload.get("action"), err)
+            return False
