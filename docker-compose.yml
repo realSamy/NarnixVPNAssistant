@@ -39,6 +39,16 @@ services:
       timeout: 3s
       retries: 10
     restart: unless-stopped
+  searxng:
+    image: searxng/searxng:latest
+    environment:
+      - SEARXNG_bind_address=0.0.0.0:8080
+      - SEARXNG_server_secret=searxng-narnix-backend
+    volumes:
+      - ./searxng/settings.yml:/usr/local/searxng/settings.yml:ro
+    depends_on:
+      - redis
+    restart: unless-stopped
 
 volumes:
   pgdata:
