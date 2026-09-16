@@ -26,7 +26,11 @@ async def lifespan(app: FastAPI):
     http = httpx.AsyncClient(timeout=30)
     redis = aioredis.from_url(settings.redis_url, decode_responses=True)
 
-    pool = AsyncConnectionPool(conninfo=settings.database_url, open=False)
+    pool = AsyncConnectionPool(
+        conninfo=settings.database_url,
+        open=False,
+        kwargs={"autocommit": True},
+    )
     await pool.open()
     checkpointer = AsyncPostgresSaver(pool)
     await checkpointer.setup()
