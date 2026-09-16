@@ -9,6 +9,8 @@ from psycopg_pool import AsyncConnectionPool
 
 from app.agents.runner import AgentRunner
 from app.core.config import get_settings
+from app.web.fetch import Fetcher
+from app.web.search import SearxngClient
 from app.routers import chats, health
 from app.worker import CallbackOutbox, WorkerClient
 
@@ -50,7 +52,13 @@ async def lifespan(app: FastAPI):
     outbox = CallbackOutbox(redis, worker)
     await outbox.start()
 
-    app.state.runner = AgentRunner(model, checkpointer, worker, outbox)
+    # Shared, connection-pool-backed clients for the search/fetch tools.
+    search = SearxngClient(http, settings).with_cache(redis)
+    fetcher = Fetcher(http, settings).with_cache(redis)
+
+    app.state.runner = AgentRunner(
+        model, checkpointer, worker, outbox, search=search, fetcher=fetcher
+    )
     app.state.redis = redis
 
     yield
