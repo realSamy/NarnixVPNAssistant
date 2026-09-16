@@ -96,9 +96,14 @@ class WorkerClient:
             {"action": "close_chat", "chat_id": chat_id, "thread_id": thread_id, "reason": reason}
         )
 
-        async def reset_chat(self, chat_id: int) -> dict:
+    async def reset_chat(self, chat_id: int, reason: str = "") -> dict:
+        """Starts the same topic over on a fresh checkpointer thread.
 
-            return await self.call({"action": "reset_chat", "chat_id": chat_id})
+        `reason` is an ops-log line the Worker records, mirroring `close_chat`
+        — the tool has always accepted one, so dropping it here meant the
+        model's explanation never reached the log.
+        """
+        return await self.call({"action": "reset_chat", "chat_id": chat_id, "reason": reason})
 
     # --- Read-only live data (resolved by the Worker from D1) ---
 

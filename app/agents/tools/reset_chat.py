@@ -19,6 +19,6 @@ def reset_chat_tool(ctx: ToolContext):
         Args:
             reason: One short line for the ops log, not shown to the user.
         """
-        return await ctx.worker.reset_chat(chat_id=ctx.chat_id)
+        return await ctx.worker.reset_chat(chat_id=ctx.chat_id, reason=reason)
 
     return reset_chat
