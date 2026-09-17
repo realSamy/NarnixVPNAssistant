@@ -1,11 +1,13 @@
 import asyncio
 import logging
 import time
+from typing import Union
 
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_openrouter import ChatOpenRouter
+from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from app.agents.prompts.support import build_system_prompt
@@ -87,7 +89,7 @@ class AgentRunner:
 
     def __init__(
         self,
-        model: ChatOpenRouter,
+        model: Union[ChatOpenRouter, ChatOpenAI],
         checkpointer: BaseCheckpointSaver,
         worker: WorkerClient,
         outbox: CallbackOutbox,
@@ -157,7 +159,7 @@ class AgentRunner:
 
         # Seed a draft so the user sees "thinking" immediately. The Worker holds
         # one live draft per (chat, thread, draft_id); later drafts replace it.
-        thinking = "در حال فکر کردن" if message.user.lang == "fa" else "Thinking"
+        thinking = "در حال فکر کردن..." if message.user.lang == "fa" else "Thinking..."
         await self._worker.send_draft(chat_id, f'<tg-thinking>{thinking}</tg-thinking>', draft_id)
 
         buffer = ""

@@ -15,6 +15,15 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
+    # --- Provider ---
+    chat_model_provider: str = "openai"
+
+    # --- OpenAI ---
+    openai_api_key: str
+    openai_model: str = "gpt-5.6-sol"
+    openai_max_tokens: int = 16384
+    openai_base_url: str = "https://agentrouter.org/v1"
+
     # --- OpenRouter ---
     openrouter_api_key: SecretStr
     openrouter_model: str = "google/gemini-2.5-flash"

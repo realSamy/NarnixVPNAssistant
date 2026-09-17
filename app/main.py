@@ -4,6 +4,7 @@ import httpx
 import redis.asyncio as aioredis
 from fastapi import FastAPI
 from langchain_openrouter import ChatOpenRouter
+from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg_pool import AsyncConnectionPool
 
@@ -37,13 +38,22 @@ async def lifespan(app: FastAPI):
     checkpointer = AsyncPostgresSaver(pool)
     await checkpointer.setup()
 
-    model = ChatOpenRouter(
-        model=settings.openrouter_model,
-        max_tokens=settings.openrouter_max_tokens,
-        temperature=0.3,
-        max_retries=2,
-        app_title="NarnixVPN Assistant",
-    )
+    if settings.chat_model_provider == "openai":
+        model = ChatOpenAI(
+            model=settings.openai_model,
+            max_tokens=settings.openai_max_tokens,
+            temperature=0.3,
+            max_retries=2,
+        )
+    else:
+        model = ChatOpenRouter(
+            model=settings.openrouter_model,
+            max_tokens=settings.openrouter_max_tokens,
+            temperature=0.3,
+            max_retries=2,
+            app_title="NarnixVPN Assistant",
+        )
+
     worker = WorkerClient(
         http,
         settings.worker_callback_url,
