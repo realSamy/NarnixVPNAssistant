@@ -229,7 +229,7 @@ class AgentRunner:
             "action": "answer",
             "chat_id": message.chat_id,
             "thread_id": message.thread_id,
-            "text": richify(text, mode="html"),
+            "text": richify(text).html,
         }
         if parse_mode:
             payload["parse_mode"] = parse_mode
