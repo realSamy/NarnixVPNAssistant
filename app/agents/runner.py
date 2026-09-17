@@ -177,7 +177,7 @@ class AgentRunner:
         async for event in agent.astream_events(
             {"messages": [("user", message.text)]},
             config=runnable_config,
-            version="spec",
+            version="v2",
         ):
             kind = event.get("event")
             if kind == "on_chat_model_stream":
