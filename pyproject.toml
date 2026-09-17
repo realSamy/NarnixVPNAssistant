@@ -13,6 +13,7 @@ dependencies = [
     "redis>=6.0",
     "httpx>=0.28",
     "pydantic-settings>=2.10",
+    "telegramify-markdown>=1.2.0",
 ]
 
 [dependency-groups]

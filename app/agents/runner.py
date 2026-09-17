@@ -15,6 +15,9 @@ from app.schemas.chat import MessageIn
 from app.worker.client import WorkerClient
 from app.worker.outbox import CallbackOutbox
 
+from telegramify_markdown import richify
+
+
 logger = logging.getLogger(__name__)
 
 # Tool name -> progress "step" the Worker renders as a fun status message on
@@ -154,8 +157,8 @@ class AgentRunner:
 
         # Seed a draft so the user sees "thinking" immediately. The Worker holds
         # one live draft per (chat, thread, draft_id); later drafts replace it.
-        thinking = "در حال فکر کردن…" if message.user.lang == "fa" else "Thinking…"
-        await self._worker.send_draft(chat_id, thinking, draft_id)
+        thinking = "در حال فکر کردن" if message.user.lang == "fa" else "Thinking"
+        await self._worker.send_draft(chat_id, f'<tg-thinking>{thinking}</tg-thinking>', draft_id)
 
         buffer = ""
         last_send = 0.0
@@ -210,7 +213,7 @@ class AgentRunner:
 
         # Clear the in-progress draft (empty text) before posting the answer so
         # a stale partial draft can never shadow the real message.
-        await self._worker.send_draft(chat_id, "", draft_id)
+        # await self._worker.send_draft(chat_id, "", draft_id)
         await self._deliver_answer(
             message, reply, parse_mode="html"
         )
@@ -226,7 +229,7 @@ class AgentRunner:
             "action": "answer",
             "chat_id": message.chat_id,
             "thread_id": message.thread_id,
-            "text": text,
+            "text": richify(text, mode="html"),
         }
         if parse_mode:
             payload["parse_mode"] = parse_mode
