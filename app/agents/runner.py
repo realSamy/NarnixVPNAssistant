@@ -9,7 +9,6 @@ from langchain_openrouter import ChatOpenRouter
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from app.agents.prompts.support import build_system_prompt
-from app.agents.rendering import markdown_to_telegram_html
 from app.agents.tools import ToolContext, build_tools
 from app.core import config
 from app.schemas.chat import MessageIn
@@ -213,7 +212,7 @@ class AgentRunner:
         # a stale partial draft can never shadow the real message.
         await self._worker.send_draft(chat_id, "", draft_id)
         await self._deliver_answer(
-            message, markdown_to_telegram_html(reply), parse_mode="html"
+            message, reply, parse_mode="html"
         )
 
     def _next_draft_id(self) -> int:
