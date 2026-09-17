@@ -2,7 +2,6 @@ import json
 import logging
 
 import httpx
-from telegramify_markdown import richify
 
 from app.core.security import SIGNATURE_HEADER, sign_payload
 
@@ -160,7 +159,7 @@ class WorkerClient:
                 "action": "draft",
                 "chat_id": chat_id,
                 "draft_id": draft_id,
-                "text": richify(text).html,
+                "text": text,
                 "can_stop": can_stop,
                 "keep_on_stop": keep_on_stop,
             }

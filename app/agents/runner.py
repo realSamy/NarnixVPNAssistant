@@ -169,11 +169,14 @@ class AgentRunner:
             nonlocal last_send
             if not buffer:
                 return
+            html_content = richify(buffer).html
+            if not html_content:
+                return
             now = time.monotonic()
             if (now - last_send) * 1000 < interval_ms:
                 return
             last_send = now
-            await self._worker.send_draft(chat_id, buffer, draft_id)
+            await self._worker.send_draft(chat_id, html_content, draft_id)
 
         runnable_config = RunnableConfig(configurable={"thread_id": session_id})
         async for event in agent.astream_events(
