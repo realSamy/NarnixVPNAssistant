@@ -39,6 +39,7 @@ async def lifespan(app: FastAPI):
 
     model = ChatOpenRouter(
         model=settings.openrouter_model,
+        max_tokens=settings.openrouter_max_tokens,
         temperature=0.3,
         max_retries=2,
         app_title="NarnixVPN Assistant",

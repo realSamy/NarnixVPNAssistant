@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     # --- OpenRouter ---
     openrouter_api_key: SecretStr
     openrouter_model: str = "google/gemini-2.5-flash"
+    openrouter_max_tokens: int = 16384
 
     # --- Worker integration ---
     ai_callback_secret: SecretStr
